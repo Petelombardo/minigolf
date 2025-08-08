@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="Track scores for mini golf games with friends">
+    <title>Mini Golf Scorecard</title>
+    <link rel="manifest" id="manifest-link">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        input[type="text"], input[type="number"] {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        input[type="text"]:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #6c757d;
+            border: 2px solid #e9ecef;
+        }
+        
+        .btn-secondary:hover {
+            background: #e9ecef;
+            transform: translateY(-1px);
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+        }
+        
+        .player-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .player-item {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .player-name {
+            font-weight: 600;
+            flex: 1;
+        }
+        
+        .score-input {
+            width: 60px;
+            margin: 0 10px;
+        }
+        
+        .hole-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .hole-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .scoreboard {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .scoreboard-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .rank {
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #667eea;
+            margin-right: 15px;
+        }
+        
+        .total-score {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #28a745;
+        }
+        
+        .current-scores {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .score-display {
+            text-align: center;
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .navigation {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function MiniGolfApp() {
+            const [players, setPlayers] = useState([]);
+            const [currentHole, setCurrentHole] = useState(1);
+            const [scores, setScores] = useState({});
+            const [pars, setPars] = useState({}); // Store par for each hole
+            const [view, setView] = useState('setup'); // setup, playing, results
+            const [newPlayerName, setNewPlayerName] = useState('');
+            const [tempScores, setTempScores] = useState({});
+            const [tempPar, setTempPar] = useState('');
+
+            // Load saved game data on startup
+            useEffect(() => {
+                try {
+                    const savedGame = localStorage.getItem('miniGolfGame');
+                    if (savedGame) {
+                        const gameData = JSON.parse(savedGame);
+                        setPlayers(gameData.players || []);
+                        setCurrentHole(gameData.currentHole || 1);
+                        setScores(gameData.scores || {});
+                        setPars(gameData.pars || {});
+                        setView(gameData.view || 'setup');
+                        setTempScores(gameData.tempScores || {});
+                        setTempPar(gameData.pars?.[gameData.currentHole || 1] || '');
+                        console.log('✅ Game data restored from storage');
+                    }
+                } catch (error) {
+                    console.log('ℹ️ No saved game found or error loading:', error);
+                }
+            }, []);
+
+            // Save game data whenever state changes
+            useEffect(() => {
+                try {
+                    const gameData = {
+                        players,
+                        currentHole,
+                        scores,
+                        pars,
+                        view,
+                        tempScores,
+                        lastSaved: new Date().toISOString()
+                    };
+                    localStorage.setItem('miniGolfGame', JSON.stringify(gameData));
+                    console.log('💾 Game auto-saved');
+                } catch (error) {
+                    console.log('⚠️ Could not save game:', error);
+                }
+            }, [players, currentHole, scores, pars, view, tempScores]);
+
+            const addPlayer = () => {
+                if (newPlayerName.trim() && !players.includes(newPlayerName.trim())) {
+                    const playerName = newPlayerName.trim();
+                    setPlayers([...players, playerName]);
+                    setNewPlayerName('');
+                    
+                    // Initialize scores for new player
+                    const newScores = { ...scores };
+                    if (!newScores[playerName]) {
+                        newScores[playerName] = {};
+                    }
+                    setScores(newScores);
+                }
+            };
+
+            const removePlayer = (playerName) => {
+                setPlayers(players.filter(p => p !== playerName));
+                const newScores = { ...scores };
+                delete newScores[playerName];
+                setScores(newScores);
+            };
+
+            const startGame = () => {
+                if (players.length > 0) {
+                    setView('playing');
+                    setCurrentHole(1);
+                    // Initialize temp scores for hole 1
+                    const initialTempScores = {};
+                    players.forEach(player => {
+                        initialTempScores[player] = scores[player]?.[1] || '';
+                    });
+                    setTempScores(initialTempScores);
+                    setTempPar(pars[1] || '');
+                }
+            };
+
+            const updateTempScore = (player, score) => {
+                setTempScores({
+                    ...tempScores,
+                    [player]: score
+                });
+            };
+
+            const saveHoleScores = () => {
+                const newScores = { ...scores };
+                players.forEach(player => {
+                    if (!newScores[player]) {
+                        newScores[player] = {};
+                    }
+                    if (tempScores[player] !== '') {
+                        newScores[player][currentHole] = parseInt(tempScores[player]);
+                    }
+                });
+                setScores(newScores);
+
+                // Save par for current hole
+                if (tempPar !== '') {
+                    const newPars = { ...pars };
+                    newPars[currentHole] = parseInt(tempPar);
+                    setPars(newPars);
+                }
+            };
+
+            const nextHole = () => {
+                saveHoleScores();
+                if (currentHole < 18) {
+                    const nextHoleNum = currentHole + 1;
+                    setCurrentHole(nextHoleNum);
+                    // Load scores for next hole
+                    const nextTempScores = {};
+                    players.forEach(player => {
+                        nextTempScores[player] = scores[player]?.[nextHoleNum] || '';
+                    });
+                    setTempScores(nextTempScores);
+                    setTempPar(pars[nextHoleNum] || '');
+                } else {
+                    saveHoleScores();
+                    setView('results');
+                }
+            };
+
+            const prevHole = () => {
+                saveHoleScores();
+                const prevHoleNum = currentHole - 1;
+                setCurrentHole(prevHoleNum);
+                // Load scores for previous hole
+                const prevTempScores = {};
+                players.forEach(player => {
+                    prevTempScores[player] = scores[player]?.[prevHoleNum] || '';
+                });
+                setTempScores(prevTempScores);
+                setTempPar(pars[prevHoleNum] || '');
+            };
+
+            const calculateTotal = (player) => {
+                if (!scores[player]) return 0;
+                return Object.values(scores[player]).reduce((sum, score) => sum + score, 0);
+            };
+
+            const calculateParTotal = () => {
+                return Object.values(pars).reduce((sum, par) => sum + par, 0);
+            };
+
+            const getScoreRelativeToPar = (score, par) => {
+                if (!score || !par) return '';
+                const diff = score - par;
+                if (diff === -3) return 'Albatross!';
+                if (diff === -2) return 'Eagle';
+                if (diff === -1) return 'Birdie';
+                if (diff === 0) return 'Par';
+                if (diff === 1) return 'Bogey';
+                if (diff === 2) return 'Double';
+                if (diff === 3) return 'Triple';
+                return `+${diff}`;
+            };
+
+            const getLeaderboard = () => {
+                const totalPar = calculateParTotal();
+                return players
+                    .map(player => ({
+                        name: player,
+                        total: calculateTotal(player),
+                        toPar: totalPar > 0 ? calculateTotal(player) - totalPar : 0,
+                        holesPlayed: scores[player] ? Object.keys(scores[player]).length : 0
+                    }))
+                    .sort((a, b) => a.total - b.total);
+            };
+
+            const getRankSuffix = (rank) => {
+                if (rank === 1) return 'st';
+                if (rank === 2) return 'nd';
+                if (rank === 3) return 'rd';
+                return 'th';
+            };
+
+            const resetGame = () => {
+                // Clear saved game data
+                try {
+                    localStorage.removeItem('miniGolfGame');
+                    console.log('🗑️ Saved game cleared');
+                } catch (error) {
+                    console.log('⚠️ Could not clear saved game:', error);
+                }
+                
+                setPlayers([]);
+                setScores({});
+                setPars({});
+                setCurrentHole(1);
+                setView('setup');
+                setTempScores({});
+                setTempPar('');
+            };
+
+            if (view === 'setup') {
+                return (
+                    <div className="container">
+                        <div className="header">
+                            <h1>🏌️ Mini Golf</h1>
+                            <p>Add players to get started</p>
+                        </div>
+                        
+                        <div className="card">
+                            <div className="input-group">
+                                <input
+                                    type="text"
+                                    placeholder="Enter player name"
+                                    value={newPlayerName}
+                                    onChange={(e) => setNewPlayerName(e.target.value)}
+                                    onKeyPress={(e) => e.key === 'Enter' && addPlayer()}
+                                />
+                                <button className="btn btn-primary" onClick={addPlayer}>
+                                    Add
+                                </button>
+                            </div>
+                            
+                            {players.length > 0 && (
+                                <div className="player-list">
+                                    {players.map(player => (
+                                        <div key={player} className="player-item">
+                                            <span className="player-name">{player}</span>
+                                            <button 
+                                                className="btn btn-danger"
+                                                onClick={() => removePlayer(player)}
+                                            >
+                                                Remove
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            
+                            {players.length > 0 && (
+                                <div style={{ marginTop: '20px', textAlign: 'center' }}>
+                                    <button className="btn btn-primary" onClick={startGame}>
+                                        Start Game (18 Holes)
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            }
+
+            if (view === 'playing') {
+                const currentPar = pars[currentHole];
+                
+                return (
+                    <div className="container">
+                        <div className="header">
+                            <div className="hole-info">
+                                <div className="hole-number">Hole {currentHole}</div>
+                                <div>of 18</div>
+                                {currentPar && <div style={{ color: '#28a745', fontSize: '1.2rem', fontWeight: 'bold' }}>Par {currentPar}</div>}
+                            </div>
+                        </div>
+                        
+                        <div className="card">
+                            {/* Par Input */}
+                            <div style={{ marginBottom: '20px', textAlign: 'center' }}>
+                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Par for Hole {currentHole}:</label>
+                                <input
+                                    type="number"
+                                    min="3"
+                                    max="6"
+                                    value={tempPar}
+                                    onChange={(e) => setTempPar(e.target.value)}
+                                    placeholder="3, 4, or 5"
+                                    style={{ 
+                                        width: '80px', 
+                                        textAlign: 'center', 
+                                        fontSize: '16px',
+                                        padding: '8px',
+                                        border: '2px solid #e1e5e9',
+                                        borderRadius: '8px'
+                                    }}
+                                />
+                            </div>
+
+                            {/* Compact Score Grid */}
+                            <div style={{ 
+                                display: 'grid', 
+                                gridTemplateColumns: players.length <= 2 ? '1fr 1fr' : 'repeat(auto-fit, minmax(140px, 1fr))',
+                                gap: '10px',
+                                marginBottom: '20px'
+                            }}>
+                                {players.map(player => {
+                                    const playerScore = tempScores[player] ? parseInt(tempScores[player]) : null;
+                                    const parScore = tempPar ? parseInt(tempPar) : null;
+                                    const relativeScore = playerScore && parScore ? getScoreRelativeToPar(playerScore, parScore) : '';
+                                    
+                                    return (
+                                        <div key={player} style={{
+                                            background: '#f8f9fa',
+                                            borderRadius: '10px',
+                                            padding: '12px',
+                                            borderLeft: '4px solid #667eea',
+                                            textAlign: 'center'
+                                        }}>
+                                            <div style={{ fontWeight: '600', marginBottom: '8px', fontSize: '14px' }}>
+                                                {player}
+                                            </div>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                max="15"
+                                                value={tempScores[player] || ''}
+                                                onChange={(e) => updateTempScore(player, e.target.value)}
+                                                placeholder="Score"
+                                                style={{
+                                                    width: '60px',
+                                                    textAlign: 'center',
+                                                    fontSize: '18px',
+                                                    fontWeight: 'bold',
+                                                    padding: '8px',
+                                                    border: '2px solid #e1e5e9',
+                                                    borderRadius: '8px',
+                                                    marginBottom: '5px'
+                                                }}
+                                            />
+                                            <div style={{ fontSize: '12px', color: '#666' }}>
+                                                Total: {calculateTotal(player)}
+                                            </div>
+                                            {relativeScore && (
+                                                <div style={{ 
+                                                    fontSize: '12px', 
+                                                    fontWeight: 'bold',
+                                                    color: relativeScore.includes('Birdie') || relativeScore.includes('Eagle') ? '#28a745' : 
+                                                          relativeScore === 'Par' ? '#6c757d' : '#dc3545'
+                                                }}>
+                                                    {relativeScore}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            
+                            <div className="navigation">
+                                {currentHole > 1 && (
+                                    <button className="btn btn-secondary" onClick={prevHole}>
+                                        ← Previous
+                                    </button>
+                                )}
+                                <div style={{ flex: 1 }}></div>
+                                <button className="btn btn-primary" onClick={nextHole}>
+                                    {currentHole === 18 ? 'Finish Game' : 'Next Hole →'}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Current Standings */}
+                        <div className="card">
+                            <h3 style={{ marginBottom: '15px', textAlign: 'center' }}>Current Standings</h3>
+                            <div className="current-scores">
+                                {getLeaderboard().map((player, index) => (
+                                    <div key={player.name} className="score-display">
+                                        <div style={{ fontSize: '0.8rem', color: '#666' }}>
+                                            {index + 1}{getRankSuffix(index + 1)}
+                                        </div>
+                                        <div style={{ fontWeight: 'bold' }}>{player.name}</div>
+                                        <div style={{ color: '#28a745' }}>{player.total}</div>
+                                        {calculateParTotal() > 0 && (
+                                            <div style={{ fontSize: '12px', color: player.toPar === 0 ? '#6c757d' : player.toPar < 0 ? '#28a745' : '#dc3545' }}>
+                                                {player.toPar === 0 ? 'E' : player.toPar > 0 ? `+${player.toPar}` : player.toPar}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (view === 'results') {
+                const leaderboard = getLeaderboard();
+                const totalPar = calculateParTotal();
+                
+                return (
+                    <div className="container">
+                        <div className="header">
+                            <h1>🏆 Final Results</h1>
+                            <p>18 holes completed!</p>
+                            {totalPar > 0 && <p>Course par: {totalPar}</p>}
+                        </div>
+                        
+                        <div className="card">
+                            <div className="scoreboard">
+                                {leaderboard.map((player, index) => (
+                                    <div key={player.name} className="scoreboard-item">
+                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                            <span className="rank">
+                                                {index + 1}{getRankSuffix(index + 1)}
+                                            </span>
+                                            <span className="player-name" style={{ fontSize: '1.1rem' }}>
+                                                {player.name}
+                                            </span>
+                                        </div>
+                                        <div style={{ textAlign: 'right' }}>
+                                            <div className="total-score">{player.total} strokes</div>
+                                            {totalPar > 0 && (
+                                                <div style={{ 
+                                                    fontSize: '0.9rem', 
+                                                    color: player.toPar === 0 ? '#6c757d' : player.toPar < 0 ? '#28a745' : '#dc3545',
+                                                    fontWeight: 'bold'
+                                                }}>
+                                                    {player.toPar === 0 ? 'Even par' : player.toPar > 0 ? `+${player.toPar}` : `${player.toPar}`}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            
+                            <div style={{ textAlign: 'center', marginTop: '30px' }}>
+                                <button className="btn btn-primary" onClick={resetGame}>
+                                    New Game
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Winner Celebration */}
+                        {leaderboard.length > 0 && (
+                            <div className="card" style={{ textAlign: 'center', background: 'linear-gradient(45deg, #ffd700, #ffed4e)' }}>
+                                <h2 style={{ margin: '0 0 10px 0', color: '#333' }}>🎉 Congratulations! 🎉</h2>
+                                <p style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#333' }}>
+                                    {leaderboard[0].name} wins with {leaderboard[0].total} strokes!
+                                </p>
+                                {totalPar > 0 && (
+                                    <p style={{ fontSize: '1rem', color: '#333', marginTop: '5px' }}>
+                                        {leaderboard[0].toPar === 0 ? 'Shot even par!' : 
+                                         leaderboard[0].toPar < 0 ? `${leaderboard[0].toPar} under par!` : 
+                                         `+${leaderboard[0].toPar} over par`}
+                                    </p>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                );
+            }
+        }
+
+        ReactDOM.render(<MiniGolfApp />, document.getElementById('root'));
+
+        // Simple PWA setup with offline support
+        window.addEventListener('load', function() {
+            // Create manifest with enhanced mobile support
+            const manifest = {
+                name: "Mini Golf Scorecard",
+                short_name: "Mini Golf",
+                description: "Track scores for mini golf games with friends",
+                start_url: window.location.href,
+                display: "standalone",
+                background_color: "#667eea",
+                theme_color: "#667eea",
+                orientation: "portrait",
+                scope: window.location.pathname,
+                categories: ["games", "sports"],
+                lang: "en",
+                icons: [
+                    {
+                        src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Crect width='72' height='72' fill='%23667eea'/%3E%3Ccircle cx='36' cy='36' r='20' fill='white'/%3E%3C/svg%3E",
+                        sizes: "72x72",
+                        type: "image/svg+xml",
+                        purpose: "any"
+                    },
+                    {
+                        src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' fill='%23667eea'/%3E%3Ccircle cx='48' cy='48' r='25' fill='white'/%3E%3C/svg%3E",
+                        sizes: "96x96",
+                        type: "image/svg+xml",
+                        purpose: "any"
+                    },
+                    {
+                        src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' fill='%23667eea'/%3E%3Ccircle cx='64' cy='64' r='35' fill='white'/%3E%3C/svg%3E",
+                        sizes: "128x128",
+                        type: "image/svg+xml",
+                        purpose: "any"
+                    },
+                    {
+                        src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='144' height='144' viewBox='0 0 144 144'%3E%3Crect width='144' height='144' fill='%23667eea'/%3E%3Ccircle cx='72' cy='72' r='40' fill='white'/%3E%3C/svg%3E",
+                        sizes: "144x144",
+                        type: "image/svg+xml",
+                        purpose: "any"
+                    },
+                    {
+                        src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='192' height='192' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%23667eea'/%3E%3Ccircle cx='96' cy='96' r='50' fill='white'/%3E%3C/svg%3E",
+                        sizes: "192x192",
+                        type: "image/svg+xml",
+                        purpose: "any"
+                    },
+                    {
+                        src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='512' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%23667eea'/%3E%3Ccircle cx='256' cy='256' r='150' fill='white'/%3E%3C/svg%3E",
+                        sizes: "512x512",
+                        type: "image/svg+xml",
+                        purpose: "any"
+                    }
+                ]
+            };
+
+            // Set manifest
+            const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+            const manifestUrl = URL.createObjectURL(manifestBlob);
+            document.getElementById('manifest-link').href = manifestUrl;
+
+            // Register service worker for offline functionality
+            if ('serviceWorker' in navigator) {
+                // Create service worker code with all dependencies
+                const swCode = `
+                    const CACHE_NAME = 'mini-golf-v2';
+                    const urlsToCache = [
+                        '${window.location.href}',
+                        'https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js',
+                        'https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js',
+                        'https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js'
+                    ];
+                    
+                    self.addEventListener('install', function(event) {
+                        console.log('SW: Installing with all dependencies...');
+                        event.waitUntil(
+                            caches.open(CACHE_NAME)
+                                .then(function(cache) {
+                                    console.log('SW: Caching app shell and dependencies');
+                                    return cache.addAll(urlsToCache).catch(function(error) {
+                                        console.error('SW: Failed to cache some resources:', error);
+                                        // Try caching individually
+                                        return Promise.all(
+                                            urlsToCache.map(function(url) {
+                                                return cache.add(url).catch(function(err) {
+                                                    console.warn('SW: Failed to cache:', url, err);
+                                                });
+                                            })
+                                        );
+                                    });
+                                })
+                        );
+                        self.skipWaiting();
+                    });
+                    
+                    self.addEventListener('activate', function(event) {
+                        console.log('SW: Activating...');
+                        event.waitUntil(
+                            caches.keys().then(function(cacheNames) {
+                                return Promise.all(
+                                    cacheNames.map(function(cacheName) {
+                                        if (cacheName !== CACHE_NAME) {
+                                            console.log('SW: Deleting old cache:', cacheName);
+                                            return caches.delete(cacheName);
+                                        }
+                                    })
+                                );
+                            })
+                        );
+                        self.clients.claim();
+                    });
+                    
+                    self.addEventListener('fetch', function(event) {
+                        event.respondWith(
+                            caches.match(event.request)
+                                .then(function(response) {
+                                    // Return cached version if available
+                                    if (response) {
+                                        console.log('SW: Serving from cache:', event.request.url);
+                                        return response;
+                                    }
+                                    
+                                    // Try to fetch from network
+                                    return fetch(event.request).catch(function() {
+                                        console.log('SW: Network failed for:', event.request.url);
+                                        
+                                        // For navigation requests, return the main app
+                                        if (event.request.mode === 'navigate') {
+                                            return caches.match('${window.location.href}');
+                                        }
+                                        
+                                        // For other requests, we don't have a fallback
+                                        throw new Error('No cached resource available');
+                                    });
+                                }
+                            )
+                        );
+                    });
+                `;
+
+                // Try using data URL instead of blob URL
+                const dataUrl = 'data:application/javascript;base64,' + btoa(swCode);
+                
+                navigator.serviceWorker.register(dataUrl)
+                    .then(function(registration) {
+                        console.log('✅ ServiceWorker registered successfully');
+                        console.log('📱 App will now work offline with all dependencies!');
+                        
+                        // Force update if there's a new service worker
+                        registration.addEventListener('updatefound', function() {
+                            console.log('🔄 New service worker found, updating...');
+                        });
+                    })
+                    .catch(function(err) {
+                        console.log('❌ ServiceWorker registration failed:', err);
+                        console.log('💡 App will still work online and save data locally');
+                    });
+            }
+
+            console.log('✅ Mini Golf app loaded successfully!');
+            console.log('📋 Manifest created for PWA installation');
+        });
+    </script>
+</body>
+</html>
